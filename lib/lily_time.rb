@@ -7,33 +7,40 @@ module LilyTime
   class Scanner
     URL = "http://localhost:12060/repository/scan"
     DATA = { :recordFilter => { "@class" => "org.lilyproject.repository.api.filter.RecordTypeFilter",:recordType => "{my.demo}product"},:caching => 10 }
-    attr_accessor :scanner
+    attr_accessor :scanner,:error
     def initialize(args={})
-      DATA["recordType"] = args[:recordType] if args[:recordType].present?
-      puts  DATA
-      rest_response = RestClient.post( URL, DATA.to_json,:content_type => :json)
-      @scanner = rest_response.code == 201 ? rest_response.raw_headers["location"] : nil
+      DATA[:recordFilter][:recordType] = args[:recordType] if args.key? :recordType
+      @dynamic_url = args[:url] if args.key? :url
+      RestClient.post(@dynamic_url || URL, DATA.to_json,:content_type => :json){|rest_response, request, result|
+        if rest_response.code == 201
+          @scanner = rest_response.raw_headers["location"]
+        else
+         @error = JSON.parse(result.body) rescue rest_response
+        end
+      }
     end
 
     def scan_records
-      if @scanner.empty?
-        puts "Scanner is Empty, Try Again"
-      else
+      @records = Array.new
+      @delete_response = nil
+      if @scanner && !@scanner.empty?
         status_code = 200
         until status_code != 200
           response = fetch_scanner
           status_code = response.code
           if status_code != 200
-            puts "Triggering DELETE"
             response = RestClient.delete(@scanner.first)
-            puts response.code
+            @delete_response = response.code
           else
             result = JSON.parse(response.body)
             result_set = result["results"]
-            puts  result_set
+            @records << result_set
           end
         end
+      else
+        @error = @error.to_s + "Scanner is Empty, Try Again"
       end
+      return {:records => @records.flatten,:scanner_deletion => @delete_response,:error => @error }
     end
 
     def self.run_program

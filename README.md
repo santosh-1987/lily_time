@@ -35,9 +35,24 @@ Or install it yourself as:
 
     $ gem install lily_time
 
-## Usage
+## Quick start
 
-TODO: Write usage instructions here
+Kick the Functionality !
+
+You can Start executing the following commands:
+
+     @lily_scanner = LilyTime::Scanner.new({:url => "http://lily_url:12060/repository/scan",:recordType => "{my_demo.Article}Product"})
+
+This would create a Scanner and with this scanner we will scan the records.
+Or with rackup:
+
+    @lily_scanner.scan_records
+
+ To run the test suite completely, you can execute:
+ 
+     LilyTime::Scanner.run_program
+      => {:records=>[{"id"=>"UUID.a7166289-eb7a-4715-8c8e-3c997d752926", "version"=>2, "type"=>{"name"=>"ns1$product", "version"=>1}, "versionedType"=>{"name"=>"ns1$product", "version"=>1}, "fields"=>{"ns1$name"=>"Butter Masala", "ns1$price"=>4.25}, "namespaces"=>{"my.demo"=>"ns1"}}, {"id"=>"UUID.d6c5d9c9-15d6-4dd3-a4e9-b7ae293fc076", "version"=>1, "type"=>{"name"=>"ns1$product", "version"=>1}, "versionedType"=>{"name"=>"ns1$product", "version"=>1}, "fields"=>{"ns1$name"=>"Bread", "ns1$price"=>2.11}, "namespaces"=>{"my.demo"=>"ns1"}}], :scanner_deletion=>200, :error=>nil}
+
 
 ## What is Lily for ?
 
