@@ -1,5 +1,14 @@
 # LilyTime
 
+There are two protocols available to talk to Lily: an RPC-style binary one based on Avro, which is used when you use the client Java API , and a REST-style API (HTTP+JSON).
+Lily Time Provides user REST Interface to be used across applications to store date to Hbase.
+
+The port on which the REST interface is listening is printed on repository startup, by default it is
+12060:
+Protocol [HTTP/1.1] listening on port 12060
+For example, here is how you can access one of the records created earlier by the import:
+http://localhost:12060/repository/record/USER.Santosh__Mohanty
+
 Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/lily_time`. To experiment with that code, run `bin/console` for an interactive prompt.
 
 TODO: Delete this and the text above, and describe your gem
@@ -7,6 +16,11 @@ TODO: Delete this and the text above, and describe your gem
 ## Installation
 
 Add this line to your application's Gemfile:
+
+```ruby
+ 'Please ensure that you have a running lily server with HBase to make this Gem Work !'
+```
+
 
 ```ruby
 gem 'lily_time'
