@@ -9,11 +9,12 @@ module LilyTime
     include LilyRecord
     URL = "http://localhost:12060/repository/scan"
     DATA = { :recordFilter => { "@class" => "org.lilyproject.repository.api.filter.RecordTypeFilter",:recordType => "{my.demo}product"},:caching => 10 }
-    attr_accessor :scanner,:error
+    attr_accessor :scanner,:error,:lock_file
     def initialize(args={})
       $LOGGER.info("Program Started .")
       DATA[:recordFilter][:recordType] = args[:recordType] if args.key? :recordType
       @dynamic_url = args[:url] if args.key? :url
+      @lock_file = File.open("lily_time.#{Time.now.to_i}.txt","a")
       RestClient.post(@dynamic_url || URL, DATA.to_json,:content_type => :json){|rest_response, request, result|
         if rest_response.code == 201
           @scanner = rest_response.raw_headers["location"]
@@ -44,6 +45,7 @@ module LilyTime
             count += 1
             result = JSON.parse(response.body)
             result_set = result["results"]
+            File.open(@lock_file.path,"a") { |f| f.puts(result_set) }
             @results << LilyRecord::Updater.update_records(result_set)
             @records << result_set
           end
@@ -64,7 +66,7 @@ module LilyTime
     def fetch_scanner(count)
       $LOGGER.info("Fetching Record for : #{@scanner.first} with count #{count}")
       begin
-        RestClient.get((@scanner.first)+("?batch=1"))
+        RestClient.get((@scanner.first)+("?batch=10"))
       rescue => e
         $LOGGER.info("Error Fetching records from scanner: #{e.inspect} ")
       end
