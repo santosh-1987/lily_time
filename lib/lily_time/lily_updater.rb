@@ -5,37 +5,40 @@ require "json"
 
 module LilyRecord
   class Updater
-    def self.update_records(records)
+    def self.update_records(records,attributes)
       start_time = Time.now
       $LOGGER.info("Recieved Records with Count : #{records.count}, Starting Update at #{start_time.to_s}.")
       records.each do |record|
-        $LOGGER.info("Record : #{record}")
-        # Create URL
-        url = "http://localhost:12060/repository/record/"+record["id"]
-        #Fetch Keys from Record
-        key_array = record["fields"].keys
-        #Key mappings to substitute original Keys
-        mappings = Hash[ *key_array.collect { |v| [ v, convert_namespace(v) ] }.flatten ]
-        # Map with mappings and create values
-        fields = record["fields"].map {|k, v| [mappings[k], convert_image_url(mappings[k],v)] }.to_h
-        #Build the Json to be sent
-        json_to_save = {:rest_url=>url, :type=>"n$Asset", :fields=>fields, :namespaces=>{:"org.lilyproject.vtag"=>"vtag", :"spotlight.covx"=>"n"}}
+        if attributes.nil?
+          $LOGGER.info("Record : #{record}")
+          # Create URL
+          url = "http://localhost:12060/repository/record/"+record["id"]
+          #Fetch Keys from Record
+          key_array = record["fields"].keys
+          #Key mappings to substitute original Keys
+          mappings = Hash[ *key_array.collect { |v| [ v, convert_namespace(v) ] }.flatten ]
+          # Map with mappings and create values
+          fields = record["fields"].map {|k, v| [mappings[k], convert_image_url(mappings[k],v)] }.to_h
+          #Build the Json to be sent
+          json_to_save = {:rest_url=>url, :type=>"n$Asset", :fields=>fields, :namespaces=>{:"org.lilyproject.vtag"=>"vtag", :"spotlight.covx"=>"n"}}
 
-        $LOGGER.info("JSON to Save : #{json_to_save}")
-        status = 0
-        rtn = 0
-        modify_status = record["fields"]["ns1$resized_images"].any? {|word| word.include?("nycitappclav2.timeinc.com") } rescue false
-        if modify_status
-          RestClient.send("put", url, json_to_save.to_json, :content_type => :json, :accept => :json){ |response, &block|
-            response_json = saved_record_json(response)
-            rtn = response_json
-            $LOGGER.info("Response Detail :")
-            status = $LOGGER.info("#{response_json}")
-          }
+          $LOGGER.info("JSON to Save : #{json_to_save}")
+          status = 0
+          rtn = 0
+          modify_status = record["fields"]["ns1$resized_images"].any? {|word| word.include?("nycitappclav2.timeinc.com") } rescue false
+          if modify_status
+            RestClient.send("put", url, json_to_save.to_json, :content_type => :json, :accept => :json){ |response, &block|
+              response_json = saved_record_json(response)
+              rtn = response_json
+              $LOGGER.info("Response Detail :")
+              status = $LOGGER.info("#{response_json}")
+            }
+          else
+            $LOGGER.info("Record Doesnot consist of Nycitappclav2 url")
+          end
         else
-          $LOGGER.info("Record Doesnot consist of Nycitappclav2 url")
+          $CSV.info("#{record['id']}")
         end
-        # sleep 1
       end
       $LOGGER.info("Completed Batch at Time #{Time.now.to_s} & Difference is : #{(Time.now-start_time).to_s}")
     end

@@ -25,7 +25,7 @@ module LilyTime
       }
     end
 
-    def scan_records
+    def scan_records(attributes=nil)
       @records = Array.new
       @results = Array.new
       @delete_response = nil
@@ -46,7 +46,7 @@ module LilyTime
             result = JSON.parse(response.body)
             result_set = result["results"]
             File.open(@lock_file.path,"a") { |f| f.puts(result_set) }
-            @results << LilyRecord::Updater.update_records(result_set)
+            @results << LilyRecord::Updater.update_records(result_set,attributes)
             @records << result_set
           end
         end
