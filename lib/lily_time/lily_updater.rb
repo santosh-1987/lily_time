@@ -35,7 +35,7 @@ module LilyRecord
         else
           $LOGGER.info("Record Doesnot consist of Nycitappclav2 url")
         end
-        sleep 1
+        # sleep 1
       end
       $LOGGER.info("Completed Batch at Time #{Time.now.to_s} & Difference is : #{(Time.now-start_time).to_s}")
     end
